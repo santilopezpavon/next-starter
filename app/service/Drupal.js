@@ -3,13 +3,13 @@ const axios = require('axios');
 
 
 module.exports =  {
-    getData: async function(alias) {
+    getData: async function(alias, drupalBase) {        
         try {
             let aliasString =  alias;
             if (Array.isArray(alias)) {
                 aliasString =  "/" + alias.join("/");
             }           
-            let dataNode = await this.getNodeByAlias(aliasString, "bartik");
+            let dataNode = await this.getNodeByAlias(aliasString, "bartik", drupalBase);
             let pathComponent = this.getComponent(dataNode); 
             let metatags = this.getMetatags(dataNode);
             return {
@@ -20,7 +20,7 @@ module.exports =  {
         } catch (error) {
             return {
                 "data": {},
-                "pathComponent": "404",
+                "pathComponent": "page-404",
                 "metatags": {
                     title: "Error 404",
                     description: ""
@@ -31,8 +31,8 @@ module.exports =  {
 
         
     },
-    getNodeByAlias: function(aliasString, theme) {
-        let drupalBase = Config.drupal;
+    getNodeByAlias: function(aliasString, theme, drupalBase) {
+        
         let apiEndPoint = drupalBase + "node/alias?theme=" + theme;        
         let body = {
             "schema": {"display": "default"},

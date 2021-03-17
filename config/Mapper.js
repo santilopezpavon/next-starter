@@ -4,7 +4,7 @@ import ErrorPage from "./../Components/404"
 
 const mapper = {
     NodetypeArticle: Article,
-    404: ErrorPage
+    "page-404": ErrorPage
 }
 
 

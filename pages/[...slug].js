@@ -24,7 +24,8 @@ export default function Base({...props}) {
 
 export async function getServerSideProps(context) {
   const params = context.params;
-  let baseProps = await Drupal.getData(params.slug); 
+  let destinationBasePath = Hooks.basegetapibasepath(context);
+  let baseProps = await Drupal.getData(params.slug, destinationBasePath); 
   Hooks.basegetserverprops(baseProps);
   return {props: baseProps}
 }
