@@ -1,3 +1,3 @@
 module.exports =  {
-    drupal: "http://ecommerce.ddev.site/api/"
+    drupal: "http://perfomance.ddev.site/"
 }

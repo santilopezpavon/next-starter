@@ -3,19 +3,23 @@ const axios = require('axios');
 
 
 module.exports =  {
-    getData: async function(alias, drupalBase) {        
+    getData: async function(alias) {        
         try {
-            let aliasString =  alias;
-            if (Array.isArray(alias)) {
-                aliasString =  "/" + alias.join("/");
-            }           
-            let dataNode = await this.getNodeByAlias(aliasString, "bartik", drupalBase);
+            //console.time('aliasString');
+            const aliasString = Array.isArray(alias) ? `/${alias.join('/')}/` : alias; 
+            //console.timeEnd('aliasString');
+
+            //console.time('getNodeByAlias');
+            let dataNode = await this.getNodeByAlias(aliasString);
+            //console.timeEnd('getNodeByAlias');
+
+           // console.time('pathComponent');
             let pathComponent = this.getComponent(dataNode); 
-            let metatags = this.getMetatags(dataNode);
+           // console.timeEnd('pathComponent');           
+
             return {
                 "data": dataNode,
                 "pathComponent": pathComponent,
-                "metatags": metatags
             }; 
         } catch (error) {
             return {
@@ -26,52 +30,70 @@ module.exports =  {
                     description: ""
                 }
             }
-        }
-        
-
-        
+        }        
     },
-    getNodeByAlias: function(aliasString, theme, drupalBase) {
-        
-        let apiEndPoint = drupalBase + "node/alias?theme=" + theme;        
-        let body = {
+
+    getEntity: async function (entity_type, id_entity, display_content = 'default') {
+        const drupalBase = Config.drupal;
+        const apiEndPoint = drupalBase + "api/" + entity_type + "/get/" + id_entity;        
+        const body = {
+            "schema": {"display": display_content},
+        };
+        try {
+            const response = await axios.post(apiEndPoint, body);
+            return response.data;
+        } catch (error) {
+            return error.message; 
+        }  
+
+       /* try {
+            const response = await fetch("http://perfomance.ddev.site/sites/default/files/builder/test.json");
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            return error.message; 
+        }  */
+
+        /**
+         * 
+         * try {
+            const response = await fetch("http://perfomance.ddev.site/sites/default/files/builder/test.json");
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            return error.message; 
+        }  
+         */
+    },
+
+    getView: function (id_view, id_display_view, display_content = 'default') {
+
+    },
+
+    getNodeByAlias: async function(aliasString, theme = null) {
+        const drupalBase = Config.drupal;
+        const apiEndPoint = drupalBase + "api/node/alias";        
+        const body = {
             "schema": {"display": "default"},
             "alias": aliasString
         };
-        return axios.post(apiEndPoint, body)
-        .then(function (response) {
+        try {
+            const response = await axios.post(apiEndPoint, body);
             return response.data;
-        })
-        .catch(function (error) {
-            return error.message;
-        });        
+        } catch (error) {
+            return error.message; 
+        }              
     },
     getComponent(data) {
         let currentData = this.getNodeInfo(data);
-        let target_id = this.convertString(currentData.type[0].target_id);
-        let target_type = this.convertString(currentData.type[0].target_type);
-        return target_type + "" + target_id;
-    },
-
-    getMetatags(data) {
-        let currentData = this.getNodeInfo(data);        
-        let metatags = {
-            "title": currentData.metatag.value.title,
-            "description": currentData.metatag.value.description
-        };
-        return metatags;
+        return this.convertString(currentData.type[0].target_type) + "" + this.convertString(currentData.type[0].target_id);
     },
 
     getNodeInfo(data) {
-        let currentData = data;
-        if(data.data.hasOwnProperty("Content")) {
-            currentData = data.data["Content"];
-        } else {
-            currentData = data.data;
-        }
+        const currentData = data.data['Content'] ? data.data['Content'] : data.data;
         return currentData;
     }, 
     convertString(text) {
-        return text.charAt(0).toUpperCase() + text.slice(1).replace('_', '');
+        return text[0].toUpperCase() + text.slice(1).replace(/_/g, '');
     }  
 }
